@@ -11,10 +11,7 @@ export default {
 
         if (!username || !email || !password) {
           return Response.json(
-            {
-              success: false,
-              error: "All fields are required"
-            },
+            { success: false, error: "All fields are required" },
             { status: 400 }
           );
         }
@@ -64,10 +61,7 @@ export default {
 
       } catch (error) {
         return Response.json(
-          {
-            success: false,
-            error: "Registration failed"
-          },
+          { success: false, error: "Registration failed" },
           { status: 500 }
         );
       }
@@ -132,7 +126,6 @@ export default {
           );
         }
 
-        // Create session token
         const token =
           crypto.randomUUID() +
           crypto.randomUUID();
@@ -149,11 +142,7 @@ export default {
             (user_id, token_hash, expires_at)
             VALUES (?, ?, ?)`
           )
-          .bind(
-            user.id,
-            tokenHash,
-            expires
-          )
+          .bind(user.id, tokenHash, expires)
           .run();
 
         return Response.json({
@@ -172,9 +161,42 @@ export default {
 
       } catch (error) {
         return Response.json(
+          { success: false, error: "Login failed" },
+          { status: 500 }
+        );
+      }
+    }
+
+    // =========================
+    // GET VIDEOS
+    // =========================
+    if (request.method === "GET" && url.pathname === "/api/videos") {
+      try {
+        const result = await env.DB
+          .prepare(
+            `SELECT
+              id,
+              title,
+              url,
+              duration,
+              reward_free,
+              reward_premium
+            FROM videos
+            WHERE active = 1
+            ORDER BY id ASC`
+          )
+          .all();
+
+        return Response.json({
+          success: true,
+          videos: result.results
+        });
+
+      } catch (error) {
+        return Response.json(
           {
             success: false,
-            error: "Login failed"
+            error: "Could not load videos"
           },
           { status: 500 }
         );
@@ -259,8 +281,6 @@ async function sha256(value) {
 // =========================
 function toHex(buffer) {
   return [...new Uint8Array(buffer)]
-    .map(b =>
-      b.toString(16).padStart(2, "0")
-    )
+    .map(b => b.toString(16).padStart(2, "0"))
     .join("");
 }
