@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoCash</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#f3f5f8;
+color:#172033
+}
+header{
+background:#111827;
+color:white;
+padding:20px;
+text-align:center
+}
+header h1{margin:0}
+nav{
+background:white;
+display:flex;
+justify-content:center;
+gap:5px;
+padding:10px;
+position:sticky;
+top:0;
+z-index:10;
+box-shadow:0 2px 8px #0001
+}
+nav button{
+background:white;
+color:#172033;
+padding:10px 14px
+}
+.container{
+max-width:900px;
+margin:auto;
+padding:15px
+}
+.stats{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:12px;
+margin-top:20px
+}
+.stat{
+background:white;
+padding:18px 10px;
+border-radius:15px;
+text-align:center;
+box-shadow:0 3px 10px #0001
+}
+.number{
+display:block;
+font-size:24px;
+font-weight:bold;
+margin-top:8px
+}
+.card{
+background:white;
+margin-top:20px;
+padding:20px;
+border-radius:15px;
+box-shadow:0 3px 10px #0001
+}
+.page{display:none}
+.page.active{display:block}
+.video{margin-top:15px}
+video{
+width:100%;
+border-radius:10px
+}
+button{
+border:0;
+border-radius:8px;
+padding:12px 18px;
+background:#2563eb;
+color:white;
+font-size:15px;
+cursor:pointer
+}
+button:disabled{
+background:#9ca3af;
+cursor:not-allowed
+}
+input,select{
+width:100%;
+padding:12px;
+margin:8px 0 15px;
+border:1px solid #ddd;
+border-radius:8px;
+font-size:15px
+}
+.warning{
+background:#fef3c7;
+color:#92400e;
+padding:12px;
+border-radius:8px;
+margin:15px 0
+}
+.success{
+background:#dcfce7;
+color:#166534;
+padding:12px;
+border-radius:8px;
+margin-top:15px
+}
+.withdraw-status{
+margin-top:20px;
+padding:15px;
+background:#f8fafc;
+border-radius:10px
+}
+@media(max-width:600px){
+.stats{grid-template-columns:1fr}
+nav{overflow-x:auto;justify-content:flex-start}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🎬 VideoCash</h1>
+<p>شاهد الفيديوهات واربح المكافآت</p>
+</header>
+
+<nav>
+<button onclick="showPage('home')">🏠 الرئيسية</button>
+<button onclick="showPage('videos')">🎥 الفيديوهات</button>
+<button onclick="showPage('withdraw')">💸 السحب</button>
+<button onclick="showPage('account')">👤 الحساب</button>
+</nav>
+
+<div class="container">
+
+<section id="home" class="page active">
+
+<div class="stats">
+
+<div class="stat">
+👁️
+<span>المشاهدات</span>
+<span class="number" id="views">0</span>
+</div>
+
+<div class="stat">
+💰
+<span>أرباح المشاهدة</span>
+<span class="number">$<span id="earned">0.00</span></span>
+</div>
+
+<div class="stat">
+💵
+<span>الرصيد</span>
+<span class="number">$<span id="balance">0.00</span></span>
+</div>
+
+</div>
+
+<div class="card">
+<h2>مرحبًا بك في VideoCash 👋</h2>
+<p>شاهد الفيديوهات كاملة واحصل على المكافأة.</p>
+<p>الخطة الحالية: <strong id="plan">Free</strong></p>
+
+<button onclick="showPage('videos')">
+ابدأ مشاهدة الفيديوهات
+</button>
+</div>
+
+</section>
+
+
+<section id="videos" class="page">
+
+<div class="card">
+
+<h2>🎥 الفيديوهات</h2>
+<p>أكمل الفيديو حتى النهاية للحصول على المكافأة.</p>
+
+<div class="video">
+
+<h3>فيديو 1</h3>
+
+<video id="video1" controls>
+<source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+المتصفح لا يدعم الفيديو.
+</video>
+
+<p>
+المكافأة:
+<strong id="videoReward">$0.05</strong>
+</p>
+
+<button id="claimButton" disabled>
+أكمل الفيديو أولًا
+</button>
+
+</div>
+</div>
+
+</section>
+
+
+<section id="withdraw" class="page">
+
+<div class="card">
+
+<h2>💸 سحب الأرباح</h2>
+
+<p>
+رصيدك الحالي:
+<strong>$<span id="withdrawBalance">0.00</span></strong>
+</p>
+
+<div class="warning">
+الحد الأدنى للسحب: $5.00
+</div>
+
+<label>طريقة السحب</label>
+
+<select id="method">
+<option value="USDT TRC20">USDT TRC20</option>
+</select>
+
+<label>عنوان محفظة USDT TRC20</label>
+
+<input id="withdrawWallet" type="text"
+placeholder="أدخل عنوان محفظتك">
+
+<label>مبلغ السحب بالدولار</label>
+
+<input id="withdrawAmount" type="number"
+placeholder="مثال: 5"
+min="5"
+step="0.01">
+
+<button onclick="requestWithdrawal()">
+طلب السحب
+</button>
+
+<div id="withdrawMessage"></div>
+
+<div class="withdraw-status">
+<h3>📋 آخر طلب سحب</h3>
+<p id="lastWithdrawal">لا توجد طلبات سحب.</p>
+</div>
+
+</div>
+
+</section>
+
+
+<section id="account" class="page">
+
+<div class="card">
+
+<h2>👤 حسابي</h2>
+
+<p>
+الخطة الحالية:
+<strong id="accountPlan">Free</strong>
+</p>
+
+<p>
+عدد المشاهدات:
+<strong id="accountViews">0</strong>
+</p>
+
+<p>
+الأرباح:
+<strong>$<span id="accountEarned">0.00</span></strong>
+</p>
+
+<button onclick="upgrade()">
+⭐ الترقية إلى Premium
+</button>
+
+</div>
+
+</section>
+
+</div>
+
+
+<script>
+
+let views=parseInt(localStorage.getItem("views")||"0");
+
+let earned=parseFloat(localStorage.getItem("earned")||"0");
+
+let balance=parseFloat(localStorage.getItem("balance")||"0");
+
+let plan=localStorage.getItem("plan")||"Free";
+
+let video1Watched=
+localStorage.getItem("video1Watched")==="true";
+
+let lastWithdrawal=
+localStorage.getItem("lastWithdrawal")||"";
+
+
+function updateDisplay(){
+
+document.getElementById("views").textContent=views;
+
+document.getElementById("earned").textContent=
+earned.toFixed(2);
+
+document.getElementById("balance").textContent=
+balance.toFixed(2);
+
+document.getElementById("withdrawBalance").textContent=
+balance.toFixed(2);
+
+document.getElementById("plan").textContent=plan;
+
+document.getElementById("accountPlan").textContent=plan;
+
+document.getElementById("accountViews").textContent=views;
+
+document.getElementById("accountEarned").textContent=
+earned.toFixed(2);
+
+if(lastWithdrawal){
+document.getElementById("lastWithdrawal").textContent=
+lastWithdrawal;
+}
+
+}
+
+
+function saveData(){
+
+localStorage.setItem("views",views);
+
+localStorage.setItem("earned",earned);
+
+localStorage.setItem("balance",balance);
+
+localStorage.setItem("plan",plan);
+
+localStorage.setItem(
+"video1Watched",
+video1Watched
+);
+
+}
+
+
+function showPage(pageId){
+
+document.querySelectorAll(".page")
+.forEach(page=>{
+page.classList.remove("active");
+});
+
+document.getElementById(pageId)
+.classList.add("active");
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+updateDisplay();
+
+}
+
+
+const video=document.getElementById("video1");
+
+const claimButton=
+document.getElementById("claimButton");
+
+
+video.addEventListener("ended",function(){
+
+if(video1Watched){
+return;
+}
+
+claimButton.disabled=false;
+
+claimButton.textContent=
+"💰 استلام المكافأة";
+
+});
+
+
+claimButton.addEventListener("click",function(){
+
+if(video1Watched){
+return;
+}
+
+let reward=
+plan==="Premium"
+?0.20
+:0.05;
+
+views++;
+
+earned+=reward;
+
+balance+=reward;
+
+video1Watched=true;
+
+saveData();
+
+claimButton.disabled=true;
+
+claimButton.textContent=
+"✓ تمت إضافة المكافأة";
+
+updateDisplay();
+
+alert(
+"تمت إضافة $"+
+reward.toFixed(2)+
+" إلى رصيدك."
+);
+
+});
+
+
+function requestWithdrawal(){
+
+let wallet=
+document.getElementById("withdrawWallet")
+.value.trim();
+
+let amount=
+parseFloat(
+document.getElementById("withdrawAmount").value
+);
+
+let message=
+document.getElementById("withdrawMessage");
+
+
+if(!wallet||!amount){
+
+message.innerHTML=
+'<div class="warning">أدخل جميع المعلومات.</div>';
+
+return;
+}
+
+
+if(amount<5){
+
+message.innerHTML=
+'<div class="warning">الحد الأدنى للسحب هو $5.</div>';
+
+return;
+}
+
+
+if(amount>balance){
+
+message.innerHTML=
+'<div class="warning">رصيدك غير كافٍ.</div>';
+
+return;
+}
+
+
+lastWithdrawal=
+"طلب سحب $"+
+amount.toFixed(2)+
+" عبر USDT TRC20 — قيد المراجعة";
+
+localStorage.setItem(
+"lastWithdrawal",
+lastWithdrawal
+);
+
+message.innerHTML=
+'<div class="success">✓ تم إرسال طلب السحب للمراجعة.</div>';
+
+document.getElementById("lastWithdrawal")
+.textContent=lastWithdrawal;
+
+}
+
+
+function upgrade(){
+
+alert(
+"ترقية Premium ستكون متاحة في المرحلة التالية."
+);
+
+}
+
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
