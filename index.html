@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoCash</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#0f172a;
+  color:white;
+}
+.container{
+  max-width:430px;
+  margin:auto;
+  padding:20px;
+}
+.logo{
+  text-align:center;
+  color:#22c55e;
+  font-size:32px;
+  font-weight:bold;
+  margin:20px 0;
+}
+.card{
+  background:#1e293b;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:15px;
+}
+input{
+  width:100%;
+  box-sizing:border-box;
+  padding:13px;
+  margin:7px 0;
+  border:0;
+  border-radius:8px;
+  background:#334155;
+  color:white;
+}
+button{
+  width:100%;
+  padding:13px;
+  margin-top:10px;
+  border:0;
+  border-radius:8px;
+  background:#22c55e;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+.secondary{
+  background:#334155;
+}
+.hidden{
+  display:none;
+}
+.balance{
+  text-align:center;
+  font-size:35px;
+  color:#22c55e;
+  font-weight:bold;
+}
+.message{
+  text-align:center;
+  margin-top:10px;
+  color:#facc15;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="logo">💰 VideoCash</div>
+
+<!-- LOGIN -->
+<div id="loginBox" class="card">
+  <h2>Login</h2>
+
+  <input id="loginEmail" type="email" placeholder="Email">
+  <input id="loginPassword" type="password" placeholder="Password">
+
+  <button onclick="login()">Login</button>
+  <button class="secondary" onclick="showRegister()">Create Account</button>
+
+  <div id="loginMessage" class="message"></div>
+</div>
+
+<!-- REGISTER -->
+<div id="registerBox" class="card hidden">
+  <h2>Create Account</h2>
+
+  <input id="username" placeholder="Username">
+  <input id="email" type="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+
+  <button onclick="register()">Create Account</button>
+  <button class="secondary" onclick="showLogin()">Back to Login</button>
+
+  <div id="registerMessage" class="message"></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="hidden">
+
+  <div class="card">
+    <p>Welcome</p>
+    <h2 id="userName"></h2>
+
+    <p>Current Balance</p>
+    <div id="balance" class="balance">$0.00</div>
+
+    <p>Plan: <span id="plan">Free</span></p>
+    <p>Views: <span id="views">0</span></p>
+    <p>Earned: $<span id="earned">0.00</span></p>
+  </div>
+
+  <div class="card">
+    <h2>🎬 Videos</h2>
+
+    <p>Watch videos and earn rewards.</p>
+
+    <button onclick="alert('Video system will be connected next.')">
+      ▶ Watch & Earn
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>💸 Withdraw</h2>
+
+    <p>USDT TRC20</p>
+
+    <button onclick="alert('Withdrawal system will be connected next.')">
+      Request Withdrawal
+    </button>
+  </div>
+
+  <button class="secondary" onclick="logout()">Logout</button>
+
+</div>
+
+</div>
+
+<script>
+
+const API = "https://videocash.ghiix144.workers.dev";
+
+function showRegister(){
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("registerBox").classList.remove("hidden");
+}
+
+function showLogin(){
+  document.getElementById("registerBox").classList.add("hidden");
+  document.getElementById("loginBox").classList.remove("hidden");
+}
+
+async function register(){
+
+  const username = document.getElementById("username").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const message = document.getElementById("registerMessage");
+
+  message.textContent = "Creating account...";
+
+  try{
+
+    const response = await fetch(API + "/api/register",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        username,
+        email,
+        password
+      })
+    });
+
+    const data = await response.json();
+
+    if(data.success){
+      message.textContent = "Account created successfully!";
+      setTimeout(showLogin,1000);
+    }else{
+      message.textContent = data.error || "Registration failed";
+    }
+
+  }catch(error){
+    message.textContent = "Connection error";
+  }
+}
+
+async function login(){
+
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  const message = document.getElementById("loginMessage");
+
+  message.textContent = "Logging in...";
+
+  try{
+
+    const response = await fetch(API + "/api/login",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        email,
+        password
+      })
+    });
+
+    const data = await response.json();
+
+    if(data.success){
+
+      localStorage.setItem("videocash_token",data.token);
+      localStorage.setItem("videocash_user",JSON.stringify(data.user));
+
+      showDashboard(data.user);
+
+    }else{
+      message.textContent = data.error || "Login failed";
+    }
+
+  }catch(error){
+    message.textContent = "Connection error";
+  }
+}
+
+function showDashboard(user){
+
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("registerBox").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
+
+  document.getElementById("userName").textContent = user.username;
+  document.getElementById("balance").textContent = "$" + Number(user.balance).toFixed(2);
+  document.getElementById("plan").textContent = user.plan;
+  document.getElementById("views").textContent = user.views;
+  document.getElementById("earned").textContent = Number(user.earned).toFixed(2);
+}
+
+function logout(){
+
+  localStorage.removeItem("videocash_token");
+  localStorage.removeItem("videocash_user");
+
+  location.reload();
+}
+
+const savedUser = localStorage.getItem("videocash_user");
+
+if(savedUser){
+
+  try{
+    showDashboard(JSON.parse(savedUser));
+  }catch(e){
+    localStorage.clear();
+  }
+
+}
+
+</script>
+
+</body>
+</html>
