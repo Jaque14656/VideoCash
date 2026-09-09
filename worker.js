@@ -98,7 +98,7 @@ export default {
             FROM users
             WHERE email = ?`
           )
-          .bind(email)
+          .bind(email, email)
           .first();
 
         if (!user) {
@@ -283,4 +283,39 @@ function toHex(buffer) {
   return [...new Uint8Array(buffer)]
     .map(b => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+
+// =========================
+// GET USER FROM SESSION
+// =========================
+async function getUserFromToken(request, env) {
+  const auth = request.headers.get("Authorization");
+
+  if (!auth || !auth.startsWith("Bearer ")) {
+    return null;
+  }
+
+  const token = auth.slice(7);
+  const tokenHash = await sha256(token);
+
+  const user = await env.DB
+    .prepare(`
+      SELECT
+        users.id,
+        users.username,
+        users.email,
+        users.balance,
+        users.views,
+        users.earned,
+        users.plan
+      FROM sessions
+      JOIN users ON users.id = sessions.user_id
+      WHERE sessions.token_hash = ?
+        AND datetime(sessions.expires_at) > datetime('now')
+    `)
+    .bind(tokenHash)
+    .first();
+
+  return user || null;
 }
