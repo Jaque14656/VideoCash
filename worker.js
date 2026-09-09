@@ -11,7 +11,10 @@ export default {
 
         if (!username || !email || !password) {
           return Response.json(
-            { success: false, error: "All fields are required" },
+            {
+              success: false,
+              error: "All fields are required"
+            },
             { status: 400 }
           );
         }
@@ -61,11 +64,15 @@ export default {
 
       } catch (error) {
         return Response.json(
-          { success: false, error: "Registration failed" },
+          {
+            success: false,
+            error: "Registration failed"
+          },
           { status: 500 }
         );
       }
     }
+
 
     // =========================
     // LOGIN
@@ -98,7 +105,7 @@ export default {
             FROM users
             WHERE email = ?`
           )
-          .bind(email, email)
+          .bind(email)
           .first();
 
         if (!user) {
@@ -161,11 +168,15 @@ export default {
 
       } catch (error) {
         return Response.json(
-          { success: false, error: "Login failed" },
+          {
+            success: false,
+            error: "Login failed"
+          },
           { status: 500 }
         );
       }
     }
+
 
     // =========================
     // GET VIDEOS
@@ -203,6 +214,148 @@ export default {
       }
     }
 
+
+    // =========================
+    // CLAIM VIDEO REWARD
+    // =========================
+    if (
+      request.method === "POST" &&
+      url.pathname === "/api/claim-video"
+    ) {
+      try {
+        const user = await getUserFromToken(request, env);
+
+        if (!user) {
+          return Response.json(
+            {
+              success: false,
+              error: "Unauthorized"
+            },
+            { status: 401 }
+          );
+        }
+
+        const { video_id } = await request.json();
+
+        if (!video_id) {
+          return Response.json(
+            {
+              success: false,
+              error: "Video ID is required"
+            },
+            { status: 400 }
+          );
+        }
+
+        const video = await env.DB
+          .prepare(
+            `SELECT
+              id,
+              title,
+              duration,
+              reward_free,
+              reward_premium,
+              active
+            FROM videos
+            WHERE id = ?
+              AND active = 1`
+          )
+          .bind(video_id)
+          .first();
+
+        if (!video) {
+          return Response.json(
+            {
+              success: false,
+              error: "Video not found"
+            },
+            { status: 404 }
+          );
+        }
+
+        let reward = Number(video.reward_free);
+
+        if (user.plan === "premium") {
+          reward = Number(video.reward_premium);
+        }
+
+        if (!Number.isFinite(reward) || reward <= 0) {
+          return Response.json(
+            {
+              success: false,
+              error: "Invalid reward"
+            },
+            { status: 500 }
+          );
+        }
+
+        try {
+          await env.DB.batch([
+            env.DB
+              .prepare(
+                `INSERT INTO video_views
+                (user_id, video_id, reward)
+                VALUES (?, ?, ?)`
+              )
+              .bind(user.id, video.id, reward),
+
+            env.DB
+              .prepare(
+                `UPDATE users
+                SET
+                  balance = balance + ?,
+                  earned = earned + ?,
+                  views = views + 1
+                WHERE id = ?`
+              )
+              .bind(reward, reward, user.id)
+          ]);
+
+        } catch (error) {
+          return Response.json(
+            {
+              success: false,
+              error: "Video already claimed or transaction failed"
+            },
+            { status: 409 }
+          );
+        }
+
+        const updatedUser = await env.DB
+          .prepare(
+            `SELECT
+              id,
+              username,
+              email,
+              balance,
+              views,
+              earned,
+              plan
+            FROM users
+            WHERE id = ?`
+          )
+          .bind(user.id)
+          .first();
+
+        return Response.json({
+          success: true,
+          message: "Reward added successfully",
+          reward: reward,
+          user: updatedUser
+        });
+
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: "Could not claim video reward"
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
     // =========================
     // DATABASE TEST
     // =========================
@@ -227,6 +380,7 @@ export default {
         );
       }
     }
+
 
     // =========================
     // SERVE WEBSITE
@@ -310,7 +464,8 @@ async function getUserFromToken(request, env) {
         users.earned,
         users.plan
       FROM sessions
-      JOIN users ON users.id = sessions.user_id
+      JOIN users
+        ON users.id = sessions.user_id
       WHERE sessions.token_hash = ?
         AND datetime(sessions.expires_at) > datetime('now')
     `)
