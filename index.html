@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VideoCash</title>
-
-  <style>
+  <title>VideoCash</title>  <style>
     * {
       box-sizing: border-box;
     }
@@ -65,6 +62,11 @@
       cursor: pointer;
     }
 
+    button:disabled {
+      background: #999;
+      cursor: not-allowed;
+    }
+
     button.secondary {
       background: #555;
     }
@@ -105,93 +107,72 @@
       border-radius: 10px;
       margin-top: 10px;
     }
-  </style>
-</head>
 
-<body>
+    .timer {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style></head><body><header>💰 VideoCash</header><div class="container">  <!-- LOGIN -->  <div id="loginBox" class="card">
+    <h2>Login</h2><input id="loginEmail" type="email" placeholder="Email">
+<input id="loginPassword" type="password" placeholder="Password">
 
-<header>💰 VideoCash</header>
+<button onclick="login()">Login</button>
+<button class="secondary" onclick="showRegister()">Create Account</button>
 
-<div class="container">
+<div id="loginMessage" class="message"></div>
 
-  <!-- LOGIN -->
-  <div id="loginBox" class="card">
-    <h2>Login</h2>
+  </div>  <!-- REGISTER -->  <div id="registerBox" class="card hidden">
+    <h2>Create Account</h2><input id="registerUsername" type="text" placeholder="Username">
+<input id="registerEmail" type="email" placeholder="Email">
+<input id="registerPassword" type="password" placeholder="Password">
 
-    <input id="loginEmail" type="email" placeholder="Email">
-    <input id="loginPassword" type="password" placeholder="Password">
+<button onclick="register()">Create Account</button>
+<button class="secondary" onclick="showLogin()">Back to Login</button>
 
-    <button onclick="login()">Login</button>
-    <button class="secondary" onclick="showRegister()">Create Account</button>
+<div id="registerMessage" class="message"></div>
 
-    <div id="loginMessage" class="message"></div>
+  </div>  <!-- DASHBOARD -->  <div id="dashboard" class="card hidden"><h2>Welcome</h2>
+
+<p id="welcome"></p>
+
+<div class="stats">
+
+  <div class="stat">
+    Balance
+    <strong id="balance">$0.00</strong>
   </div>
 
-
-  <!-- REGISTER -->
-  <div id="registerBox" class="card hidden">
-    <h2>Create Account</h2>
-
-    <input id="registerUsername" type="text" placeholder="Username">
-    <input id="registerEmail" type="email" placeholder="Email">
-    <input id="registerPassword" type="password" placeholder="Password">
-
-    <button onclick="register()">Create Account</button>
-    <button class="secondary" onclick="showLogin()">Back to Login</button>
-
-    <div id="registerMessage" class="message"></div>
+  <div class="stat">
+    Plan
+    <strong id="plan">Free</strong>
   </div>
 
+  <div class="stat">
+    Views
+    <strong id="views">0</strong>
+  </div>
 
-  <!-- DASHBOARD -->
-  <div id="dashboard" class="card hidden">
-
-    <h2>Welcome</h2>
-
-    <p id="welcome"></p>
-
-    <div class="stats">
-
-      <div class="stat">
-        Balance
-        <strong id="balance">$0.00</strong>
-      </div>
-
-      <div class="stat">
-        Plan
-        <strong id="plan">Free</strong>
-      </div>
-
-      <div class="stat">
-        Views
-        <strong id="views">0</strong>
-      </div>
-
-      <div class="stat">
-        Earned
-        <strong id="earned">$0.00</strong>
-      </div>
-
-    </div>
-
-    <h3>🎬 Watch & Earn</h3>
-
-    <div id="videos">
-      Loading videos...
-    </div>
-
-    <h3>💵 Withdraw USDT TRC20</h3>
-
-    <button onclick="withdraw()">Withdraw</button>
-
-    <button class="secondary" onclick="logout()">Logout</button>
-
+  <div class="stat">
+    Earned
+    <strong id="earned">$0.00</strong>
   </div>
 
 </div>
 
+<h3>🎬 Watch & Earn</h3>
 
-<script>
+<div id="videos">
+  Loading videos...
+</div>
+
+<h3>💵 Withdraw USDT TRC20</h3>
+
+<button onclick="withdraw()">Withdraw</button>
+
+<button class="secondary" onclick="logout()">Logout</button>
+
+  </div></div><script>
 
 const API = "/api";
 
@@ -333,6 +314,14 @@ function showDashboard(user) {
   document.getElementById("welcome").textContent =
     "Welcome, " + user.username;
 
+  updateUserStats(user);
+
+  loadVideos();
+}
+
+
+function updateUserStats(user) {
+
   document.getElementById("balance").textContent =
     "$" + Number(user.balance).toFixed(2);
 
@@ -345,7 +334,10 @@ function showDashboard(user) {
   document.getElementById("earned").textContent =
     "$" + Number(user.earned).toFixed(2);
 
-  loadVideos();
+  localStorage.setItem(
+    "videocash_user",
+    JSON.stringify(user)
+  );
 }
 
 
@@ -387,11 +379,25 @@ async function loadVideos() {
 
       div.innerHTML = `
         <strong>${video.title}</strong>
-        <p>Duration: ${video.duration} seconds</p>
-        <p>Free reward: $${Number(video.reward_free).toFixed(2)}</p>
-        <button onclick="watchVideo('${video.url}')">
+
+        <p>
+          Duration: ${video.duration} seconds
+        </p>
+
+        <p>
+          Free reward: $${Number(video.reward_free).toFixed(2)}
+        </p>
+
+        <button
+          id="watch-${video.id}"
+          onclick="watchVideo(${video.id}, '${video.url}', ${video.duration})">
           Watch Video
         </button>
+
+        <div
+          id="timer-${video.id}"
+          class="timer">
+        </div>
       `;
 
       box.appendChild(div);
@@ -406,12 +412,116 @@ async function loadVideos() {
 }
 
 
-function watchVideo(url) {
+async function watchVideo(videoId, url, duration) {
 
-  window.open(
-    url,
-    "_blank"
-  );
+  const token =
+    localStorage.getItem("videocash_token");
+
+  if (!token) {
+    alert("Please login first.");
+    return;
+  }
+
+  const button =
+    document.getElementById("watch-" + videoId);
+
+  const timer =
+    document.getElementById("timer-" + videoId);
+
+  button.disabled = true;
+
+  /*
+    Open the video in a new tab.
+  */
+  window.open(url, "_blank");
+
+
+  /*
+    Start the watch timer.
+  */
+  let remaining = Number(duration);
+
+  timer.textContent =
+    "⏳ Please watch for " + remaining + " seconds";
+
+
+  const interval =
+    setInterval(async () => {
+
+      remaining--;
+
+      if (remaining > 0) {
+
+        timer.textContent =
+          "⏳ Please watch for " +
+          remaining +
+          " seconds";
+
+        return;
+      }
+
+
+      clearInterval(interval);
+
+      timer.textContent =
+        "⏳ Checking reward...";
+
+
+      try {
+
+        const response =
+          await fetch("/api/claim-video", {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer " + token
+            },
+
+            body: JSON.stringify({
+              video_id: videoId
+            })
+
+          });
+
+
+        const data =
+          await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+          timer.textContent =
+            "❌ " +
+            (data.error || "Reward failed");
+
+          button.disabled = false;
+
+          return;
+        }
+
+
+        /*
+          Update balance, views and earned.
+        */
+        updateUserStats(data.user);
+
+
+        timer.textContent =
+          "✅ Reward added: $" +
+          Number(data.reward).toFixed(2);
+
+      } catch (error) {
+
+        timer.textContent =
+          "❌ Connection error";
+
+        button.disabled = false;
+      }
+
+    }, 1000);
+
 }
 
 
@@ -467,7 +577,5 @@ window.addEventListener(
   }
 );
 
-</script>
-
-</body>
+</script></body>
 </html>
