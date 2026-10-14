@@ -1,8 +1,11 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VideoCash</title>  <style>
+  <title>VideoCash</title>
+
+  <style>
     * {
       box-sizing: border-box;
     }
@@ -33,7 +36,7 @@
       background: white;
       padding: 22px;
       border-radius: 14px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
     }
 
     h2 {
@@ -79,6 +82,7 @@
       margin-top: 12px;
       text-align: center;
       font-size: 14px;
+      overflow-wrap: anywhere;
     }
 
     .stats {
@@ -99,6 +103,7 @@
       display: block;
       font-size: 20px;
       margin-top: 5px;
+      overflow-wrap: anywhere;
     }
 
     .video {
@@ -112,76 +117,142 @@
       text-align: center;
       margin-top: 10px;
       font-weight: bold;
+      overflow-wrap: anywhere;
     }
-  </style></head><body><header>💰 VideoCash</header><div class="container">  <!-- LOGIN -->  <div id="loginBox" class="card">
-    <h2>Login</h2><input id="loginEmail" type="email" placeholder="Email">
-<input id="loginPassword" type="password" placeholder="Password">
+  </style>
+</head>
 
-<button onclick="login()">Login</button>
-<button class="secondary" onclick="showRegister()">Create Account</button>
+<body>
 
-<div id="loginMessage" class="message"></div>
+<header>💰 VideoCash</header>
 
-  </div>  <!-- REGISTER -->  <div id="registerBox" class="card hidden">
-    <h2>Create Account</h2><input id="registerUsername" type="text" placeholder="Username">
-<input id="registerEmail" type="email" placeholder="Email">
-<input id="registerPassword" type="password" placeholder="Password">
+<div class="container">
 
-<button onclick="register()">Create Account</button>
-<button class="secondary" onclick="showLogin()">Back to Login</button>
+  <!-- LOGIN -->
+  <div id="loginBox" class="card">
+    <h2>Login</h2>
 
-<div id="registerMessage" class="message"></div>
+    <input
+      id="loginEmail"
+      type="email"
+      placeholder="Email"
+      autocomplete="email"
+    >
 
-  </div>  <!-- DASHBOARD -->  <div id="dashboard" class="card hidden"><h2>Welcome</h2>
+    <input
+      id="loginPassword"
+      type="password"
+      placeholder="Password"
+      autocomplete="current-password"
+    >
 
-<p id="welcome"></p>
+    <button onclick="login()">Login</button>
 
-<div class="stats">
+    <button class="secondary" onclick="showRegister()">
+      Create Account
+    </button>
 
-  <div class="stat">
-    Balance
-    <strong id="balance">$0.00</strong>
+    <div id="loginMessage" class="message"></div>
   </div>
 
-  <div class="stat">
-    Plan
-    <strong id="plan">Free</strong>
+
+  <!-- REGISTER -->
+  <div id="registerBox" class="card hidden">
+    <h2>Create Account</h2>
+
+    <input
+      id="registerUsername"
+      type="text"
+      placeholder="Username"
+      autocomplete="username"
+    >
+
+    <input
+      id="registerEmail"
+      type="email"
+      placeholder="Email"
+      autocomplete="email"
+    >
+
+    <input
+      id="registerPassword"
+      type="password"
+      placeholder="Password"
+      autocomplete="new-password"
+    >
+
+    <button onclick="register()">Create Account</button>
+
+    <button class="secondary" onclick="showLogin()">
+      Back to Login
+    </button>
+
+    <div id="registerMessage" class="message"></div>
   </div>
 
-  <div class="stat">
-    Views
-    <strong id="views">0</strong>
-  </div>
 
-  <div class="stat">
-    Earned
-    <strong id="earned">$0.00</strong>
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="card hidden">
+
+    <h2>Welcome</h2>
+
+    <p id="welcome"></p>
+
+    <div class="stats">
+
+      <div class="stat">
+        Balance
+        <strong id="balance">$0.00</strong>
+      </div>
+
+      <div class="stat">
+        Plan
+        <strong id="plan">Free</strong>
+      </div>
+
+      <div class="stat">
+        Views
+        <strong id="views">0</strong>
+      </div>
+
+      <div class="stat">
+        Earned
+        <strong id="earned">$0.00</strong>
+      </div>
+
+    </div>
+
+    <h3>🎬 Watch & Earn</h3>
+
+    <div id="videos">
+      Loading videos...
+    </div>
+
+    <h3>💵 Withdraw USDT TRC20</h3>
+
+    <button onclick="withdraw()">Withdraw</button>
+
+    <button class="secondary" onclick="logout()">Logout</button>
+
   </div>
 
 </div>
 
-<h3>🎬 Watch & Earn</h3>
 
-<div id="videos">
-  Loading videos...
-</div>
-
-<h3>💵 Withdraw USDT TRC20</h3>
-
-<button onclick="withdraw()">Withdraw</button>
-
-<button class="secondary" onclick="logout()">Logout</button>
-
-  </div></div><script>
+<script>
+"use strict";
 
 const API = "/api";
 
+
+// =========================
+// SHOW LOGIN / REGISTER
+// =========================
 
 function showRegister() {
   document.getElementById("loginBox").classList.add("hidden");
   document.getElementById("registerBox").classList.remove("hidden");
 }
-
 
 function showLogin() {
   document.getElementById("registerBox").classList.add("hidden");
@@ -189,8 +260,11 @@ function showLogin() {
 }
 
 
-async function register() {
+// =========================
+// REGISTER
+// =========================
 
+async function register() {
   const username =
     document.getElementById("registerUsername").value.trim();
 
@@ -203,17 +277,19 @@ async function register() {
   const message =
     document.getElementById("registerMessage");
 
+  if (!username || !email || !password) {
+    message.textContent = "Please fill in all fields.";
+    return;
+  }
+
   message.textContent = "Creating account...";
 
   try {
-
-    const response = await fetch("/api/register", {
+    const response = await fetch(`${API}/register`, {
       method: "POST",
-
       headers: {
         "Content-Type": "application/json"
       },
-
       body: JSON.stringify({
         username,
         email,
@@ -224,28 +300,25 @@ async function register() {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      message.textContent =
-        data.error || "Registration failed";
+      message.textContent = data.error || "Registration failed";
       return;
     }
 
-    message.textContent =
-      "Account created successfully!";
+    message.textContent = "Account created successfully!";
 
-    setTimeout(() => {
-      showLogin();
-    }, 1000);
+    setTimeout(showLogin, 1000);
 
   } catch (error) {
-
-    message.textContent =
-      "Connection error";
+    message.textContent = "Connection error. Please try again.";
   }
 }
 
 
-async function login() {
+// =========================
+// LOGIN
+// =========================
 
+async function login() {
   const email =
     document.getElementById("loginEmail").value.trim();
 
@@ -255,17 +328,19 @@ async function login() {
   const message =
     document.getElementById("loginMessage");
 
+  if (!email || !password) {
+    message.textContent = "Enter your email and password.";
+    return;
+  }
+
   message.textContent = "Logging in...";
 
   try {
-
-    const response = await fetch("/api/login", {
+    const response = await fetch(`${API}/login`, {
       method: "POST",
-
       headers: {
         "Content-Type": "application/json"
       },
-
       body: JSON.stringify({
         email,
         password
@@ -275,64 +350,54 @@ async function login() {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      message.textContent =
-        data.error || "Login failed";
+      message.textContent = data.error || "Login failed";
       return;
     }
 
-    localStorage.setItem(
-      "videocash_token",
-      data.token
-    );
-
-    localStorage.setItem(
-      "videocash_user",
-      JSON.stringify(data.user)
-    );
+    localStorage.setItem("videocash_token", data.token);
+    localStorage.setItem("videocash_user", JSON.stringify(data.user));
 
     showDashboard(data.user);
 
   } catch (error) {
-
-    message.textContent =
-      "Connection error";
+    message.textContent = "Connection error. Please try again.";
   }
 }
 
 
+// =========================
+// DASHBOARD
+// =========================
+
 function showDashboard(user) {
-
-  document.getElementById("loginBox")
-    .classList.add("hidden");
-
-  document.getElementById("registerBox")
-    .classList.add("hidden");
-
-  document.getElementById("dashboard")
-    .classList.remove("hidden");
+  document.getElementById("loginBox").classList.add("hidden");
+  document.getElementById("registerBox").classList.add("hidden");
+  document.getElementById("dashboard").classList.remove("hidden");
 
   document.getElementById("welcome").textContent =
     "Welcome, " + user.username;
 
   updateUserStats(user);
-
   loadVideos();
 }
 
 
-function updateUserStats(user) {
+// =========================
+// UPDATE USER STATS
+// =========================
 
+function updateUserStats(user) {
   document.getElementById("balance").textContent =
-    "$" + Number(user.balance).toFixed(2);
+    "$" + Number(user.balance || 0).toFixed(2);
 
   document.getElementById("plan").textContent =
-    user.plan;
+    user.plan || "free";
 
   document.getElementById("views").textContent =
-    user.views;
+    Number(user.views || 0);
 
   document.getElementById("earned").textContent =
-    "$" + Number(user.earned).toFixed(2);
+    "$" + Number(user.earned || 0).toFixed(2);
 
   localStorage.setItem(
     "videocash_user",
@@ -341,241 +406,19 @@ function updateUserStats(user) {
 }
 
 
-async function loadVideos() {
+// =========================
+// LOAD VIDEOS
+// =========================
 
-  const box =
-    document.getElementById("videos");
+async function loadVideos() {
+  const box = document.getElementById("videos");
 
   box.textContent = "Loading videos...";
 
   try {
+    const response = await fetch(`${API}/videos`);
+    const data = await response.json();
 
-    const response =
-      await fetch("/api/videos");
-
-    const data =
-      await response.json();
-
-    if (!data.success) {
-      box.textContent =
-        "Could not load videos";
+    if (!response.ok || !data.success) {
+      box.textContent = "Could not load videos.";
       return;
-    }
-
-    if (!data.videos.length) {
-      box.textContent =
-        "No videos available";
-      return;
-    }
-
-    box.innerHTML = "";
-
-    data.videos.forEach(video => {
-
-      const div =
-        document.createElement("div");
-
-      div.className = "video";
-
-      div.innerHTML = `
-        <strong>${video.title}</strong>
-
-        <p>
-          Duration: ${video.duration} seconds
-        </p>
-
-        <p>
-          Free reward: $${Number(video.reward_free).toFixed(2)}
-        </p>
-
-        <button
-          id="watch-${video.id}"
-          onclick="watchVideo(${video.id}, '${video.url}', ${video.duration})">
-          Watch Video
-        </button>
-
-        <div
-          id="timer-${video.id}"
-          class="timer">
-        </div>
-      `;
-
-      box.appendChild(div);
-
-    });
-
-  } catch (error) {
-
-    box.textContent =
-      "Could not load videos";
-  }
-}
-
-
-async function watchVideo(videoId, url, duration) {
-
-  const token =
-    localStorage.getItem("videocash_token");
-
-  if (!token) {
-    alert("Please login first.");
-    return;
-  }
-
-  const button =
-    document.getElementById("watch-" + videoId);
-
-  const timer =
-    document.getElementById("timer-" + videoId);
-
-  button.disabled = true;
-
-  /*
-    Open the video in a new tab.
-  */
-  window.open(url, "_blank");
-
-
-  /*
-    Start the watch timer.
-  */
-  let remaining = Number(duration);
-
-  timer.textContent =
-    "⏳ Please watch for " + remaining + " seconds";
-
-
-  const interval =
-    setInterval(async () => {
-
-      remaining--;
-
-      if (remaining > 0) {
-
-        timer.textContent =
-          "⏳ Please watch for " +
-          remaining +
-          " seconds";
-
-        return;
-      }
-
-
-      clearInterval(interval);
-
-      timer.textContent =
-        "⏳ Checking reward...";
-
-
-      try {
-
-        const response =
-          await fetch("/api/claim-video", {
-
-            method: "POST",
-
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": "Bearer " + token
-            },
-
-            body: JSON.stringify({
-              video_id: videoId
-            })
-
-          });
-
-
-        const data =
-          await response.json();
-
-
-        if (!response.ok || !data.success) {
-
-          timer.textContent =
-            "❌ " +
-            (data.error || "Reward failed");
-
-          button.disabled = false;
-
-          return;
-        }
-
-
-        /*
-          Update balance, views and earned.
-        */
-        updateUserStats(data.user);
-
-
-        timer.textContent =
-          "✅ Reward added: $" +
-          Number(data.reward).toFixed(2);
-
-      } catch (error) {
-
-        timer.textContent =
-          "❌ Connection error";
-
-        button.disabled = false;
-      }
-
-    }, 1000);
-
-}
-
-
-function withdraw() {
-
-  alert(
-    "Withdrawal system will be connected next."
-  );
-}
-
-
-function logout() {
-
-  localStorage.removeItem(
-    "videocash_token"
-  );
-
-  localStorage.removeItem(
-    "videocash_user"
-  );
-
-  location.reload();
-}
-
-
-window.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    const savedUser =
-      localStorage.getItem(
-        "videocash_user"
-      );
-
-    if (savedUser) {
-
-      try {
-
-        const user =
-          JSON.parse(savedUser);
-
-        showDashboard(user);
-
-      } catch (error) {
-
-        localStorage.removeItem(
-          "videocash_user"
-        );
-
-      }
-    }
-
-  }
-);
-
-</script></body>
-</html>
