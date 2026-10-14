@@ -9,12 +9,16 @@ export default {
       try {
         const { username, email, password } = await request.json();
 
-        if (!username || !email || !password) {
+        if (
+          typeof username !== "string" ||
+          typeof email !== "string" ||
+          typeof password !== "string" ||
+          !username.trim() ||
+          !email.trim() ||
+          !password
+        ) {
           return Response.json(
-            {
-              success: false,
-              error: "All fields are required"
-            },
+            { success: false, error: "All fields are required" },
             { status: 400 }
           );
         }
@@ -29,11 +33,14 @@ export default {
           );
         }
 
+        const cleanUsername = username.trim();
+        const cleanEmail = email.trim().toLowerCase();
+
         const existing = await env.DB
           .prepare(
             "SELECT id FROM users WHERE username = ? OR email = ?"
           )
-          .bind(username, email)
+          .bind(cleanUsername, cleanEmail)
           .first();
 
         if (existing) {
@@ -51,10 +58,10 @@ export default {
         const result = await env.DB
           .prepare(
             `INSERT INTO users
-            (username, email, password_hash)
-            VALUES (?, ?, ?)`
+              (username, email, password_hash)
+             VALUES (?, ?, ?)`
           )
-          .bind(username, email, passwordHash)
+          .bind(cleanUsername, cleanEmail, passwordHash)
           .run();
 
         return Response.json({
@@ -81,7 +88,12 @@ export default {
       try {
         const { email, password } = await request.json();
 
-        if (!email || !password) {
+        if (
+          typeof email !== "string" ||
+          typeof password !== "string" ||
+          !email.trim() ||
+          !password
+        ) {
           return Response.json(
             {
               success: false,
@@ -102,10 +114,10 @@ export default {
               views,
               earned,
               plan
-            FROM users
-            WHERE email = ?`
+             FROM users
+             WHERE email = ?`
           )
-          .bind(email)
+          .bind(email.trim().toLowerCase())
           .first();
 
         if (!user) {
@@ -146,15 +158,15 @@ export default {
         await env.DB
           .prepare(
             `INSERT INTO sessions
-            (user_id, token_hash, expires_at)
-            VALUES (?, ?, ?)`
+              (user_id, token_hash, expires_at)
+             VALUES (?, ?, ?)`
           )
           .bind(user.id, tokenHash, expires)
           .run();
 
         return Response.json({
           success: true,
-          token: token,
+          token,
           user: {
             id: user.id,
             username: user.username,
@@ -192,9 +204,9 @@ export default {
               duration,
               reward_free,
               reward_premium
-            FROM videos
-            WHERE active = 1
-            ORDER BY id ASC`
+             FROM videos
+             WHERE active = 1
+             ORDER BY id ASC`
           )
           .all();
 
@@ -216,6 +228,108 @@ export default {
 
 
     // =========================
+    // START VIDEO WATCH SESSION
+    // =========================
+    if (
+      request.method === "POST" &&
+      url.pathname === "/api/start-video"
+    ) {
+      try {
+        const user = await getUserFromToken(request, env);
+
+        if (!user) {
+          return Response.json(
+            { success: false, error: "Unauthorized" },
+            { status: 401 }
+          );
+        }
+
+        const body = await request.json();
+        const videoId = Number(body.video_id);
+
+        if (!Number.isSafeInteger(videoId) || videoId <= 0) {
+          return Response.json(
+            { success: false, error: "Invalid video ID" },
+            { status: 400 }
+          );
+        }
+
+        const video = await env.DB
+          .prepare(
+            `SELECT id, duration
+             FROM videos
+             WHERE id = ? AND active = 1`
+          )
+          .bind(videoId)
+          .first();
+
+        if (!video) {
+          return Response.json(
+            { success: false, error: "Video not found" },
+            { status: 404 }
+          );
+        }
+
+        const duration = Number(video.duration);
+
+        if (!Number.isFinite(duration) || duration <= 0) {
+          return Response.json(
+            { success: false, error: "Invalid video duration" },
+            { status: 500 }
+          );
+        }
+
+        // لا تسمح ببدء جلسة جديدة إذا سبق الحصول على مكافأة هذا الفيديو.
+        const alreadyClaimed = await env.DB
+          .prepare(
+            `SELECT id
+             FROM video_views
+             WHERE user_id = ? AND video_id = ?`
+          )
+          .bind(user.id, video.id)
+          .first();
+
+        if (alreadyClaimed) {
+          return Response.json(
+            {
+              success: false,
+              error: "You have already claimed this video"
+            },
+            { status: 409 }
+          );
+        }
+
+        const startedAt = Math.floor(Date.now() / 1000);
+
+        await env.DB
+          .prepare(
+            `INSERT INTO video_watch_sessions
+              (user_id, video_id, started_at, claimed)
+             VALUES (?, ?, ?, 0)`
+          )
+          .bind(user.id, video.id, startedAt)
+          .run();
+
+        return Response.json({
+          success: true,
+          message: "Watch session started",
+          video_id: video.id,
+          duration
+        });
+
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: "Could not start video session"
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+
+    // =========================
     // CLAIM VIDEO REWARD
     // =========================
     if (
@@ -227,22 +341,17 @@ export default {
 
         if (!user) {
           return Response.json(
-            {
-              success: false,
-              error: "Unauthorized"
-            },
+            { success: false, error: "Unauthorized" },
             { status: 401 }
           );
         }
 
-        const { video_id } = await request.json();
+        const body = await request.json();
+        const videoId = Number(body.video_id);
 
-        if (!video_id) {
+        if (!Number.isSafeInteger(videoId) || videoId <= 0) {
           return Response.json(
-            {
-              success: false,
-              error: "Video ID is required"
-            },
+            { success: false, error: "Invalid video ID" },
             { status: 400 }
           );
         }
@@ -254,22 +363,59 @@ export default {
               title,
               duration,
               reward_free,
-              reward_premium,
-              active
-            FROM videos
-            WHERE id = ?
-              AND active = 1`
+              reward_premium
+             FROM videos
+             WHERE id = ? AND active = 1`
           )
-          .bind(video_id)
+          .bind(videoId)
           .first();
 
         if (!video) {
           return Response.json(
+            { success: false, error: "Video not found" },
+            { status: 404 }
+          );
+        }
+
+        const duration = Number(video.duration);
+
+        if (!Number.isFinite(duration) || duration <= 0) {
+          return Response.json(
+            { success: false, error: "Invalid video duration" },
+            { status: 500 }
+          );
+        }
+
+        // التحقق من وجود جلسة مشاهدة اكتملت مدتها على الخادم.
+        const now = Math.floor(Date.now() / 1000);
+        const earliestAllowedStart = now - duration;
+
+        const watchSession = await env.DB
+          .prepare(
+            `SELECT id, started_at
+             FROM video_watch_sessions
+             WHERE user_id = ?
+               AND video_id = ?
+               AND claimed = 0
+               AND started_at <= ?
+             ORDER BY started_at DESC, id DESC
+             LIMIT 1`
+          )
+          .bind(
+            user.id,
+            video.id,
+            earliestAllowedStart
+          )
+          .first();
+
+        if (!watchSession) {
+          return Response.json(
             {
               success: false,
-              error: "Video not found"
+              error: "Please complete the video watch time first",
+              required_seconds: duration
             },
-            { status: 404 }
+            { status: 409 }
           );
         }
 
@@ -281,32 +427,46 @@ export default {
 
         if (!Number.isFinite(reward) || reward <= 0) {
           return Response.json(
-            {
-              success: false,
-              error: "Invalid reward"
-            },
+            { success: false, error: "Invalid reward" },
             { status: 500 }
           );
         }
 
+        // تحديث الجلسة وإضافة المشاهدة والرصيد داخل دفعة واحدة.
+        // قيد UNIQUE(user_id, video_id) في video_views يمنع تكرار المكافأة.
         try {
           await env.DB.batch([
             env.DB
               .prepare(
+                `UPDATE video_watch_sessions
+                 SET claimed = 1
+                 WHERE id = ?
+                   AND user_id = ?
+                   AND video_id = ?
+                   AND claimed = 0`
+              )
+              .bind(
+                watchSession.id,
+                user.id,
+                video.id
+              ),
+
+            env.DB
+              .prepare(
                 `INSERT INTO video_views
-                (user_id, video_id, reward)
-                VALUES (?, ?, ?)`
+                  (user_id, video_id, reward)
+                 VALUES (?, ?, ?)`
               )
               .bind(user.id, video.id, reward),
 
             env.DB
               .prepare(
                 `UPDATE users
-                SET
-                  balance = balance + ?,
-                  earned = earned + ?,
-                  views = views + 1
-                WHERE id = ?`
+                 SET
+                   balance = balance + ?,
+                   earned = earned + ?,
+                   views = views + 1
+                 WHERE id = ?`
               )
               .bind(reward, reward, user.id)
           ]);
@@ -331,8 +491,8 @@ export default {
               views,
               earned,
               plan
-            FROM users
-            WHERE id = ?`
+             FROM users
+             WHERE id = ?`
           )
           .bind(user.id)
           .first();
@@ -340,7 +500,7 @@ export default {
         return Response.json({
           success: true,
           message: "Reward added successfully",
-          reward: reward,
+          reward,
           user: updatedUser
         });
 
@@ -359,7 +519,10 @@ export default {
     // =========================
     // DATABASE TEST
     // =========================
-    if (url.pathname === "/api/test") {
+    if (
+      request.method === "GET" &&
+      url.pathname === "/api/test"
+    ) {
       try {
         const result = await env.DB
           .prepare("SELECT 1 AS ok")
