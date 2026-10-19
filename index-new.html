@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <title>VideoCash — Earn Together</title>
+
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #121c2e;
+      --panel2: #18253a;
+      --text: #f4f7ff;
+      --muted: #91a1b9;
+      --primary: #6c63ff;
+      --green: #31d69b;
+      --border: #26344b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 245px;
+      padding: 25px 16px;
+      background: #0e1727;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: 800;
+      margin-bottom: 35px;
+      padding: 0 10px;
+    }
+
+    .logo span {
+      color: var(--green);
+    }
+
+    .nav-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 13px 12px;
+      margin: 4px 0;
+      color: var(--muted);
+      background: transparent;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: #24274d;
+      color: white;
+    }
+
+    .nav-item.active {
+      border-left: 3px solid var(--primary);
+    }
+
+    .main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      background: #0e1727;
+    }
+
+    .topbar h2 {
+      font-size: 20px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    select {
+      background: var(--panel2);
+      color: white;
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .avatar {
+      background: var(--primary);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+    }
+
+    .content {
+      padding: 28px;
+      max-width: 1450px;
+      margin: auto;
+    }
+
+    .welcome {
+      margin-bottom: 25px;
+    }
+
+    .welcome h1 {
+      font-size: 27px;
+      margin-bottom: 8px;
+    }
+
+    .welcome p,
+    .muted {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .balance-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 26px;
+      border-radius: 16px;
+      background: linear-gradient(120deg, #3730a3, #5548e8, #7448d9);
+      margin-bottom: 25px;
+    }
+
+    .balance-banner small {
+      color: #dddafa;
+    }
+
+    .balance {
+      font-size: 35px;
+      font-weight: 800;
+      margin-top: 9px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      padding: 12px 17px;
+      border-radius: 9px;
