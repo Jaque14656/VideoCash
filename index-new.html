@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101827">
+  <title>VideoCash — Earn Together</title>
+
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #121c2e;
+      --panel2: #18253a;
+      --text: #f4f7ff;
+      --muted: #91a1b9;
+      --primary: #6c63ff;
+      --green: #31d69b;
+      --border: #26344b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+    }
+
+    button, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+    }
+
+    .app {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 245px;
+      padding: 25px 16px;
+      background: #0e1727;
+      border-right: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: 800;
+      margin-bottom: 35px;
+      padding: 0 10px;
+    }
+
+    .logo span {
+      color: var(--green);
+    }
+
+    .nav-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 13px 12px;
+      margin: 4px 0;
+      color: var(--muted);
+      background: transparent;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: #24274d;
+      color: white;
+    }
+
+    .nav-item.active {
+      border-left: 3px solid var(--primary);
+    }
+
+    .main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      background: #0e1727;
+    }
+
+    .topbar h2 {
+      font-size: 20px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    select {
+      background: var(--panel2);
+      color: white;
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .avatar {
+      background: var(--primary);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+    }
+
+    .content {
+      padding: 28px;
+      max-width: 1450px;
+      margin: auto;
+    }
+
+    .welcome {
+      margin-bottom: 25px;
+    }
+
+    .welcome h1 {
+      font-size: 27px;
+      margin-bottom: 8px;
+    }
+
+    .welcome p,
+    .muted {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .balance-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 26px;
+      border-radius: 16px;
+      background: linear-gradient(120deg, #3730a3, #5548e8, #7448d9);
+      margin-bottom: 25px;
+    }
+
+    .balance-banner small {
+      color: #dddafa;
+    }
+
+    .balance {
+      font-size: 35px;
+      font-weight: 800;
+      margin-top: 9px;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+      padding: 12px 17px;
+      border-radius: 9px;
+      font-weight: 700;
+    }
+
+    .primary-btn {
+      background: var(--green);
+      color: #06251a;
+    }
+
+    .secondary-btn {
+      background: var(--panel2);
+      color: white;
+      border: 1px solid var(--border);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+
+    .stat .icon {
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    .stat .number {
+      font-size: 25px;
+      font-weight: 800;
+      margin: 8px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 28px 0 16px;
+    }
+
+    .section-head h2 {
+      font-size: 20px;
+    }
+
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .platform {
+      padding: 17px;
+      text-align: left;
+      color: white;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      transition: .2s;
+    }
+
+    .platform:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+    }
+
+    .platform .emoji {
+      font-size: 29px;
+      margin-bottom: 12px;
+    }
+
+    .platform strong {
+      display: block;
+      margin-bottom: 7px;
+    }
+
+    .platform small {
+      color: var(--muted);
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 25px;
+    }
+
+    .quick-card {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .quick-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      background: var(--panel2);
+      border-radius: 12px;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .quick-card h3 {
+      margin-bottom: 7px;
+    }
+
+    .quick-card p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 17px;
+    }
+
+    .task-info {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+
+    .task-info .emoji {
+      font-size: 27px;
+    }
+
+    .task-info p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .reward {
+      color: var(--green);
+      font-weight: 800;
+      margin-right: 12px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 35px 15px;
+      color: var(--muted);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      line-height: 1.8;
+    }
+
+    .notice {
+      border: 1px solid #6554b7;
+      background: #201d40;
+      padding: 15px;
+      border-radius: 10px;
+      color: #ddd9ff;
+      line-height: 1.7;
+      margin-bottom: 18px;
+    }
+
+    .mobile-menu {
+      display: none;
+      background: var(--panel2);
+      color: white;
+      padding: 9px 12px;
+      border-radius: 8px;
+    }
+
+    .footer {
+      padding: 24px 28px;
+      color: var(--muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 40px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 1000px) {
+      .platform-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .sidebar {
+        display: none;
+        position: fixed;
+        z-index: 10;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        overflow-y: auto;
+        box-shadow: 0 0 0 100vw #0009;
+      }
+
+      .sidebar.open {
+        display: block;
+      }
+
+      .mobile-menu {
+        display: block;
+      }
+
+      .topbar {
+        padding: 15px;
+      }
+
+      .content {
+        padding: 18px 14px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .platform-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .welcome h1 {
+        font-size: 23px;
+      }
+
+      .balance-banner {
+        padding: 20px;
+      }
+
+      .balance {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">Video<span>Cash</span></div>
+
+    <div class="nav-label" data-i18n="menu">MAIN MENU</div>
+
+    <button class="nav-item active" data-page="dashboard">
+      🏠 <span data-i18n="dashboard">Dashboard</span>
+    </button>
+
+    <button class="nav-item" data-page="tasks">
+      🌐 <span data-i18n="socialTasks">Social Tasks</span>
+    </button>
+
+    <button class="nav-item" data-page="offers">
+      🎁 <span data-i18n="adsOffers">Ads & Offers</span>
+    </button>
+
+    <button class="nav-item" data-page="earnings">
+      💰 <span data-i18n="earnings">My Earnings</span>
+    </button>
+
+    <button class="nav-item" data-page="withdraw">
+      💳 <span data-i18n="withdraw">Withdraw</span>
+    </button>
+
+    <button class="nav-item" data-page="account">
+      👤 <span data-i18n="account">Account</span>
+    </button>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="top-actions">
+        <button class="mobile-menu" id="menuButton" aria-label="Open menu">☰</button>
+        <h2 id="pageTitle">Dashboard</h2>
+      </div>
+
+      <div class="top-actions">
+        <select id="language" aria-label="Language">
+          <option value="en">🇬🇧 English</option>
+          <option value="ru">🇷🇺 Русский</option>
+        </select>
+        <div class="avatar">V</div>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <section class="page active" id="dashboard">
+        <div class="welcome">
+          <h1 data-i18n="welcome">Welcome to VideoCash 👋</h1>
+          <p data-i18n="welcomeText">
+            Complete available social tasks and discover partner offers.
+          </p>
+        </div>
+
+        <div class="balance-banner">
+          <div>
+            <small data-i18n="yourBalance">YOUR BALANCE</small>
+            <div class="balance">$0.00</div>
+            <small data-i18n="demoBalance">Demo display — connected account balance not loaded</small>
+          </div>
+          <button class="primary-btn" data-go="withdraw" data-i18n="withdrawNow">
+            Withdraw funds
+          </button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="icon">🌐</div>
+            <div class="muted" data-i18n="availableTasks">Available tasks</div>
+            <div class="number">—</div>
+            <div class="muted" data-i18n="tasksLoadLater">Loaded after backend connection</div>
+          </div>
+
+          <div class="stat">
+            <div class="icon">💵</div>
+            <div class="muted" data-i18n="totalEarned">Total earned</div>
+            <div class="number">$0.00</div>
+            <div class="muted" data-i18n="demoData">Demo display</div>
+          </div>
+
+          <div class="stat">
+            <div class="icon">🎁</div>
+            <div class="muted" data-i18n="partnerOffers">Partner offers</div>
+            <div class="number">—</div>
+            <div class="muted" data-i18n="partnerConnect">Awaiting partner integration</div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h2 data-i18n="platformsTitle">Explore platforms</h2>
+          <button class="secondary-btn" data-go="tasks" data-i18n="viewAll">View all</button>
+        </div>
+
+        <div class="platform-grid" id="dashboardPlatforms"></div>
+
+        <div class="quick-grid">
+          <div class="card quick-card">
+            <div class="quick-icon">🎁</div>
+            <div>
+              <h3 data-i18n="discoverOffers">Discover offers</h3>
+              <p data-i18n="discoverOffersText">Find available surveys, apps and other partner offers.</p>
+              <br>
+              <button class="secondary-btn" data-go="offers" data-i18n="explore">Explore</button>
+            </div>
+          </div>
+
+          <div class="card quick-card">
+            <div class="quick-icon">💳</div>
+            <div>
+              <h3 data-i18n="withdrawTitle">Withdraw your earnings</h3>
+              <p data-i18n="withdrawText">Withdrawal options will be available after secure payment integration.</p>
+              <br>
+              <button class="secondary-btn" data-go="withdraw" data-i18n="learnMore">Learn more</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SOCIAL TASKS -->
+      <section class="page" id="tasks">
+        <div class="welcome">
+          <h1 data-i18n="socialTitle">Social Tasks</h1>
+          <p data-i18n="socialDescription">
+            Choose a platform to explore its available campaigns.
+          </p>
+        </div>
+
+        <div class="notice" data-i18n="taskNotice">
+          Task availability and rewards depend on active campaigns. No reward is guaranteed until a task is verified by the server.
+        </div>
+
+        <div class="platform-grid" id="allPlatforms"></div>
+
+        <div class="section-head">
+          <h2 data-i18n="campaigns">Available campaigns</h2>
+        </div>
+
+        <div class="empty-state">
+          <div style="font-size:35px;margin-bottom:12px">📋</div>
+          <strong data-i18n="noCampaigns">No campaigns loaded yet</strong>
+          <p data-i18n="campaignsText">
+            Connect the task API to display real campaigns and rewards here.
+          </p>
+        </div>
+      </section>
+
+      <!-- ADS AND OFFERS -->
+      <section class="page" id="offers">
+        <div class="welcome">
+          <h1 data-i18n="offersTitle">Ads & Offers</h1>
+          <p data-i18n="offersDescription">Explore offers provided by verified partners.</p>
+        </div>
+
+        <div class="notice" data-i18n="offersNotice">
+          Offers will appear only after a partner approves the website and supplies live campaigns. This page does not confirm that any offer is active.
+        </div>
+
+        <div class="quick-grid">
+          <div class="card">
+            <div class="quick-icon">📝</div>
+            <h3 style="margin:15px 0 8px" data-i18n="surveys">Surveys</h3>
+            <p class="muted" data-i18n="surveysText">Complete surveys when available through a partner.</p>
+          </div>
+
+          <div class="card">
+            <div class="quick-icon">📱</div>
+            <h3 style="margin:15px 0 8px" data-i18n="appsGames">Apps & Games</h3>
+            <p class="muted" data-i18n="appsText">Discover app and game offers supplied by approved partners.</p>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h2 data-i18n="liveOffers">Live partner offers</h2>
+        </div>
+
+        <div class="empty-state">
+          <div style="font-size:35px;margin-bottom:12px">🎁</div>
+          <strong data-i18n="noOffers">No live offers connected</strong>
+          <p data-i18n="noOffersText">Partner approval and API integration are required.</p>
+        </div>
+      </section>
+
+      <!-- EARNINGS -->
+      <section class="page" id="earnings">
+        <div class="welcome">
+          <h1 data-i18n="earningsTitle">My Earnings</h1>
+          <p data-i18n="earningsDescription">Review your verified earnings and transactions.</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="muted" data-i18n="currentBalance">Current balance</div>
+            <div class="number">$0.00</div>
+          </div>
+          <div class="stat">
+            <div class="muted" data-i18n="lifetimeEarned">Lifetime earned</div>
+            <div class="number">$0.00</div>
+          </div>
+          <div class="stat">
+            <div class="muted" data-i18n="paidOut">Paid out</div>
+            <div class="number">$0.00</div>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <h2 data-i18n="transactionHistory">Transaction history</h2>
+        </div>
+
+        <div class="empty-state" data-i18n="historyText">
+          Transaction history will appear after the earnings API is connected.
+        </div>
+      </section>
+
+      <!-- WITHDRAW -->
+      <section class="page" id="withdraw">
+        <div class="welcome">
+          <h1 data-i18n="withdrawPageTitle">Withdraw</h1>
+          <p data-i18n="withdrawPageDescription">View planned withdrawal options.</p>
+        </div>
+
+        <div class="card">
+          <h3>USDT — TRC20</h3>
+          <p class="muted" style="margin:12px 0" data-i18n="trc20Text">
+            Planned withdrawal method. Withdrawals are not enabled yet.
+          </p>
+
+          <label for="wallet" data-i18n="walletAddress">USDT TRC20 wallet address</label>
+          <input
+            id="wallet"
+            type="text"
+            disabled
+            placeholder="T..."
+            style="display:block;width:100%;padding:13px;margin:10px 0 15px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:white"
+          >
+
+          <button class="secondary-btn" disabled data-i18n="withdrawUnavailable">
+            Withdrawals unavailable
+          </button>
+
+          <p class="muted" style="margin-top:15px" data-i18n="securityNote">
+            Never enter your wallet seed phrase or private key.
+          </p>
+        </div>
+      </section>
+
+      <!-- ACCOUNT -->
+      <section class="page" id="account">
+        <div class="welcome">
+          <h1 data-i18n="accountTitle">Account</h1>
+          <p data-i18n="accountDescription">Your profile settings.</p>
+        </div>
+
+        <div class="card">
+          <h3 data-i18n="profile">Profile</h3>
+          <p class="muted" style="margin-top:10px" data-i18n="accountNotConnected">
+            Account information will load after secure login integration.
+          </p>
+          <br>
+          <div class="notice" data-i18n="backendNotice">
+            This is a new interface preview. It is not connected to your existing account or database yet.
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <footer class="footer">
+      VideoCash © 2026 ·
+      <span data-i18n="footerText">Social tasks and partner offers.</span>
+      <br>
+      <span data-i18n="footerNotice">
+        Interface preview only. Balances, campaigns and withdrawals require backend integration.
+      </span>
+    </footer>
+  </main>
+</div>
+
+<script>
+  const platforms = [
+    { id: "facebook", emoji: "📘", en: "Facebook", ru: "Facebook" },
+    { id: "instagram", emoji: "📸", en: "Instagram", ru: "Instagram" },
+    { id: "whatsapp", emoji: "💬", en: "WhatsApp", ru: "WhatsApp" },
+    { id: "x", emoji: "𝕏", en: "Twitter / X", ru: "Twitter / X" },
+    { id: "telegram", emoji: "✈️", en: "Telegram", ru: "Telegram" },
+    { id: "snapchat", emoji: "👻", en: "Snapchat", ru: "Snapchat" },
+    { id: "likee", emoji: "❤️", en: "Likee", ru: "Likee" },
+    { id: "tiktok", emoji: "🎵", en: "TikTok", ru: "TikTok" },
+    { id: "vk", emoji: "🔵", en: "VK", ru: "VK" },
+    { id: "linkedin", emoji: "💼", en: "LinkedIn", ru: "LinkedIn" },
+    { id: "threads", emoji: "🧵", en: "Threads", ru: "Threads" },
+    { id: "quora", emoji: "❓", en: "Quora", ru: "Quora" },
+    { id: "pinterest", emoji: "📌", en: "Pinterest", ru: "Pinterest" },
+    { id: "youtube", emoji: "▶️", en: "YouTube", ru: "YouTube" }
+  ];
+
+  const translations = {
+    en: {
+      menu: "MAIN MENU",
+      dashboard: "Dashboard",
+      socialTasks: "Social Tasks",
+      adsOffers: "Ads & Offers",
+      earnings: "My Earnings",
+      withdraw: "Withdraw",
+      account: "Account",
+      welcome: "Welcome to VideoCash 👋",
+      welcomeText: "Complete available social tasks and discover partner offers.",
+      yourBalance: "YOUR BALANCE",
+      demoBalance: "Demo display — connected account balance not loaded",
+      withdrawNow: "Withdraw funds",
+      availableTasks: "Available tasks",
+      tasksLoadLater: "Loaded after backend connection",
+      totalEarned: "Total earned",
+      demoData: "Demo display",
+      partnerOffers: "Partner offers",
+      partnerConnect: "Awaiting partner integration",
+      platformsTitle: "Explore platforms",
+      viewAll: "View all",
+      discoverOffers: "Discover offers",
+      discoverOffersText: "Find available surveys, apps and other partner offers.",
+      explore: "Explore",
+      withdrawTitle: "Withdraw your earnings",
+      withdrawText: "Withdrawal options will be available after secure payment integration.",
+      learnMore: "Learn more",
+      socialTitle: "Social Tasks",
+      socialDescription: "Choose a platform to explore its available campaigns.",
+      taskNotice: "Task availability and rewards depend on active campaigns. No reward is guaranteed until a task is verified by the server.",
+      campaigns: "Available campaigns",
+      noCampaigns: "No campaigns loaded yet",
+      campaignsText: "Connect the task API to display real campaigns and rewards here.",
+      offersTitle: "Ads & Offers",
+      offersDescription: "Explore offers provided by verified partners.",
+      offersNotice: "Offers will appear only after a partner approves the website and supplies live campaigns. This page does not confirm that any offer is active.",
+      surveys: "Surveys",
+      surveysText: "Complete surveys when available through a partner.",
+      appsGames: "Apps & Games",
+      appsText: "Discover app and game offers supplied by approved partners.",
+      liveOffers: "Live partner offers",
+      noOffers: "No live offers connected",
+      noOffersText: "Partner approval and API integration are required.",
+      earningsTitle: "My Earnings",
+      earningsDescription: "Review your verified earnings and transactions.",
+      currentBalance: "Current balance",
+      lifetimeEarned: "Lifetime earned",
+      paidOut: "Paid out",
+      transactionHistory: "Transaction history",
+      historyText: "Transaction history will appear after the earnings API is connected.",
+      withdrawPageTitle: "Withdraw",
+      withdrawPageDescription: "View planned withdrawal options.",
+      trc20Text: "Planned withdrawal method. Withdrawals are not enabled yet.",
+      walletAddress: "USDT TRC20 wallet address",
+      withdrawUnavailable: "Withdrawals unavailable",
+      securityNote: "Never enter your wallet seed phrase or private key.",
+      accountTitle: "Account",
+      accountDescription: "Your profile settings.",
+      profile: "Profile",
+      accountNotConnected: "Account information will load after secure login integration.",
+      backendNotice: "This is a new interface preview. It is not connected to your existing account or database yet.",
+      footerText: "Social tasks and partner offers.",
+      footerNotice: "Interface preview only. Balances, campaigns and withdrawals require backend integration."
+    },
+
+    ru: {
+      menu: "ГЛАВНОЕ МЕНЮ",
+      dashboard: "Панель управления",
+      socialTasks: "Социальные задания",
+      adsOffers: "Реклама и предложения",
+      earnings: "Мои доходы",
+      withdraw: "Вывод средств",
+      account: "Аккаунт",
+      welcome: "Добро пожаловать в VideoCash 👋",
+      welcomeText: "Выполняйте доступные задания и изучайте предложения партнёров.",
+      yourBalance: "ВАШ БАЛАНС",
+      demoBalance: "Демонстрация — баланс аккаунта пока не загружен",
+      withdrawNow: "Вывести средства",
+      availableTasks: "Доступные задания",
+      tasksLoadLater: "Загрузка после подключения сервера",
+      totalEarned: "Всего заработано",
+      demoData: "Демонстрационные данные",
+      partnerOffers: "Предложения партнёров",
+      partnerConnect: "Ожидается подключение партнёров",
+      platformsTitle: "Выберите платформу",
+      viewAll: "Все платформы",
+      discoverOffers: "Найти предложения",
+      discoverOffersText: "Опросы, приложения и другие предложения партнёров.",
+      explore: "Открыть",
+      withdrawTitle: "Вывод заработка",
+      withdrawText: "Вывод станет доступен после настройки безопасных платежей.",
+      learnMore: "Подробнее",
+      socialTitle: "Социальные задания",
+      socialDescription: "Выберите платформу, чтобы посмотреть доступные кампании.",
+      taskNotice: "Задания и вознаграждения зависят от активных кампаний. Выплата не гарантируется до проверки задания сервером.",
+      campaigns: "Доступные кампании",
+      noCampaigns: "Кампании пока не загружены",
+      campaignsText: "Подключите API заданий, чтобы показывать реальные кампании и вознаграждения.",
+      offersTitle: "Реклама и предложения",
+      offersDescription: "Изучайте предложения проверенных партнёров.",
+      offersNotice: "Предложения появятся после одобрения сайта партнёром и подключения активных кампаний. Активные предложения пока не подтверждены.",
+      surveys: "Опросы",
+      surveysText: "Проходите опросы, если они доступны у партнёров.",
+      appsGames: "Приложения и игры",
+      appsText: "Предложения приложений и игр от одобренных партнёров.",
+      liveOffers: "Активные предложения",
+      noOffers: "Активные предложения не подключены",
+      noOffersText: "Необходимо одобрение партнёра и интеграция API.",
+      earningsTitle: "Мои доходы",
+      earningsDescription: "Просматривайте подтверждённые доходы и транзакции.",
+      currentBalance: "Текущий баланс",
+      lifetimeEarned: "Всего заработано",
+      paidOut: "Выплачено",
+      transactionHistory: "История транзакций",
+      historyText: "История появится после подключения API доходов.",
+      withdrawPageTitle: "Вывод средств",
+      withdrawPageDescription: "Планируемые способы вывода.",
+      trc20Text: "Планируемый способ вывода. Вывод пока отключён.",
+      walletAddress: "Адрес кошелька USDT TRC20",
+      withdrawUnavailable: "Вывод недоступен",
+      securityNote: "Никогда не вводите seed-фразу или приватный ключ кошелька.",
+      accountTitle: "Аккаунт",
+      accountDescription: "Настройки вашего профиля.",
+      profile: "Профиль",
+      accountNotConnected: "Данные аккаунта появятся после подключения безопасного входа.",
+      backendNotice: "Это предварительный просмотр нового интерфейса. Он пока не подключён к вашему аккаунту или базе данных.",
+      footerText: "Социальные задания и предложения партнёров.",
+      footerNotice: "Только предварительный просмотр. Балансы, кампании и вывод требуют подключения сервера."
+    }
+  };
+
+  let currentLanguage = "en";
+
+  function renderPlatforms() {
+    const dashboardContainer = document.getElementById("dashboardPlatforms");
+    const allContainer = document.getElementById("allPlatforms");
+
+    dashboardContainer.innerHTML = "";
+    allContainer.innerHTML = "";
+
+    platforms.forEach(platform => {
+      const card = document.createElement("button");
+      card.className = "platform";
+      card.type = "button";
+      card.innerHTML = `
+        <div class="emoji">${platform.emoji}</div>
+        <strong>${platform[currentLanguage]}</strong>
+        <small>${currentLanguage === "ru" ? "Открыть задания" : "Explore tasks"} →</small>
+      `;
+
+      card.addEventListener("click", () => {
+        showPage("tasks");
+        document.querySelector(".section-head h2").scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      });
+
+      allContainer.appendChild(card.cloneNode(true));
+      dashboardContainer.appendChild(card);
+    });
+
+    allContainer.querySelectorAll(".platform").forEach((card, index) => {
+      card.addEventListener("click", () => {
+        showPage("tasks");
+        document.querySelector(".section-head h2").scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+      });
+    });
+  }
+
+  const pageTitles = {
+    dashboard: { en: "Dashboard", ru: "Панель управления" },
+    tasks: { en: "Social Tasks", ru: "Социальные задания" },
+    offers: { en: "Ads & Offers", ru: "Реклама и предложения" },
+    earnings: { en: "My Earnings", ru: "Мои доходы" },
+    withdraw: { en: "Withdraw", ru: "Вывод средств" },
+    account: { en: "Account", ru: "Аккаунт" }
+  };
+
+  function showPage(pageId) {
+    document.querySelectorAll(".page").forEach(page => {
+      page.classList.toggle("active", page.id === pageId);
+    });
+
+    document.querySelectorAll(".nav-item").forEach(button => {
+      button.classList.toggle("active", button.dataset.page === pageId);
+    });
+
+    document.getElementById("pageTitle").textContent =
+      pageTitles[pageId][currentLanguage];
+
+    document.getElementById("sidebar").classList.remove("open");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.querySelectorAll(".nav-item").forEach(button => {
+    button.addEventListener("click", () => showPage(button.dataset.page));
+  });
+
+  document.querySelectorAll("[data-go]").forEach(button => {
+    button.addEventListener("click", () => showPage(button.dataset.go));
+  });
+
+  document.getElementById("menuButton").addEventListener("click", () => {
+    document.getElementById("sidebar").classList.toggle("open");
+  });
+
+  document.getElementById("language").addEventListener("change", event => {
+    currentLanguage = event.target.value;
+
+    document.documentElement.lang = currentLanguage;
+
+    document.querySelectorAll("[data-i18n]").forEach(element => {
+      const key = element.dataset.i18n;
+      if (translations[currentLanguage][key]) {
+        element.textContent = translations[currentLanguage][key];
+      }
+    });
+
+    const activePage = document.querySelector(".page.active");
+    if (activePage) showPage(activePage.id);
+
+    renderPlatforms();
+  });
+
+  renderPlatforms();
+</script>
+</body>
+</html>
